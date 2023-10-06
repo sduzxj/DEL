@@ -39,6 +39,8 @@ def calculate_distances(layout_seed, layout_type, G, edge_index, dim):
             edge_distances[j] = distance.item()
         return edge_distances
     
+
+    
 def add_gaussian_noise(input_array, epoch, max_epoch=50, initial_std_dev=1e-3, final_std_dev=0):
     """
     parameters:
@@ -96,6 +98,7 @@ def spring_layout(
     center=None,
     dim=2,
     seed=None,
+    sampling='base',
 ):
     """Position nodes using Fruchterman-Reingold force-directed algorithm.
 
@@ -220,7 +223,7 @@ def spring_layout(
             nnodes, _ = A.shape
             k = dom_size / np.sqrt(nnodes)
         pos = _sparse_fruchterman_reingold(
-            A, k, pos_arr, fixed, iterations, threshold, dim, seed
+            A, k, pos_arr, fixed, iterations, threshold, dim, seed, sampling
         )
     except ValueError:
         A = nx.to_numpy_array(G, weight=weight)
@@ -229,7 +232,7 @@ def spring_layout(
             nnodes, _ = A.shape
             k = dom_size / np.sqrt(nnodes)
         pos = _fruchterman_reingold(
-            A, k, pos_arr, fixed, iterations, threshold, dim, seed
+            A, k, pos_arr, fixed, iterations, threshold, dim, seed, sampling
         )
     if fixed is None and scale is not None:
         pos = rescale_layout(pos, scale=scale) + center
@@ -243,7 +246,7 @@ fruchterman_reingold_layout = spring_layout
 
 @np_random_state(7)
 def _fruchterman_reingold(
-    A, k=None, pos=None, fixed=None, iterations=50, threshold=1e-4, dim=2, seed=None
+    A, k=None, pos=None, fixed=None, iterations=50, threshold=1e-4, dim=2, seed=None, sampling='base'
 ):
     # Position nodes in adjacency matrix A using Fruchterman-Reingold
     # Entry point for NetworkX graph is fruchterman_reingold_layout()
@@ -298,7 +301,8 @@ def _fruchterman_reingold(
         pos += delta_pos
         # cool temperature
         t -= dt
-        pos=add_gaussian_noise(pos,iteration)
+        if sampling =='noise':
+            pos=add_gaussian_noise(pos,iteration)
         if (np.linalg.norm(delta_pos) / nnodes) < threshold:
             break
     return pos
@@ -306,7 +310,7 @@ def _fruchterman_reingold(
 
 @np_random_state(7)
 def _sparse_fruchterman_reingold(
-    A, k=None, pos=None, fixed=None, iterations=50, threshold=1e-4, dim=2, seed=None
+    A, k=None, pos=None, fixed=None, iterations=50, threshold=1e-4, dim=2, seed=None, sampling='base'
 ):
     # Position nodes in adjacency matrix A using Fruchterman-Reingold
     # Entry point for NetworkX graph is fruchterman_reingold_layout()
@@ -373,7 +377,8 @@ def _sparse_fruchterman_reingold(
         pos += delta_pos
         # cool temperature
         t -= dt
-        pos=add_gaussian_noise(pos,iteration)
+        if sampling=='noise':
+            pos=add_gaussian_noise(pos,iteration)
         if (np.linalg.norm(delta_pos) / nnodes) < threshold:
             break
     return pos
