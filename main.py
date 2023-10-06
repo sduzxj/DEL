@@ -25,7 +25,6 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.loader import DataLoader
 from utils import *
 
-# 加载TUDataset
 import argparse
 from torch_geometric.logging import init_wandb, log
 parser = argparse.ArgumentParser()
@@ -177,8 +176,6 @@ else:
     with open(feature_path, 'wb') as f:
         pickle.dump(edge_attrs, f)
 
-# index=0
-
 for index, data in enumerate(dataset):
     edge_attr = None 
 
@@ -200,21 +197,6 @@ for index, data in enumerate(dataset):
 
     data_list.append(data)
 
-# for data in dataset:
-#             if args.dis=='rdf':
-#                dis=torch.pow(edge_attrs[index].reshape(-1, num_layouts), 2)
-#                dis =  torch.exp(-dis)
-#             if args.dis=='dis':
-#                 dis=edge_attrs[index].reshape(-1, num_layouts)
-#             if args.dis=='random':
-#                 dis=torch.rand(edge_attrs[index].size(0), num_layouts)
-#             if args.model=='GPS':
-#                  data = Data(x=data.x, edge_index=data.edge_index, edge_attr=dis, y=data.y,pe=data.pe)
-#             else: 
-#                  data = Data(x=data.x, edge_index=data.edge_index, edge_attr=dis, y=data.y)            
-#             data_list.append(data)
-#             index=index+1
-##########
 
 class PermutationInvariantNet(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -244,7 +226,6 @@ class PermutationInvariantNet(nn.Module):
         x_combined = F.relu(self.fc_stats(x_combined))
         return x_combined
 
-# 构建GNN模型
 class GNN(torch.nn.Module):
     def __init__(self, num_features, num_classes,use_edge):
         super(GNN, self).__init__()
