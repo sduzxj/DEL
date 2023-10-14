@@ -13,7 +13,6 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.loader import DataLoader
 
 
-# 加载TUDataset
 import argparse
 from torch_geometric.logging import init_wandb, log
 parser = argparse.ArgumentParser()
@@ -170,7 +169,6 @@ def train(epoch):
             total_loss += float(loss) * data.num_graphs
     return total_loss / len(train_loader.dataset)
 
-# 测试模型
 @torch.no_grad()
 def test(loader):
     model.eval()
@@ -191,7 +189,6 @@ np.random.shuffle(data_list)
 dataset = Batch.from_data_list(data_list)
 
 for fold in range(k):
-    # 划分当前折的训练集和验证集
    fold_size = len(dataset) // k
    start_idx = fold * fold_size
    end_idx = (fold + 1) * fold_size
