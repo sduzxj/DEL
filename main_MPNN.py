@@ -182,8 +182,6 @@ def test(loader):
 best_val_acc_list=[]
 best_train_acc_list=[]
 k=10
-#set_seed(42)  # 设置随机种子，以确保结果可重现
-#random.seed(42)
 
 np.random.shuffle(data_list)
 dataset = Batch.from_data_list(data_list)
