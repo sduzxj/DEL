@@ -30,8 +30,8 @@ from torch_geometric.logging import init_wandb, log
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str, default='MUTAG')
 parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--hidden_channels', type=int, default=32)
-parser.add_argument('--edge_dim', type=int, default=16)
+parser.add_argument('--hidden_channels', type=int, default=64)
+parser.add_argument('--edge_dim', type=int, default=32)
 parser.add_argument('--use_edge', type=str, default='force')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--epochs', type=int, default=100)
@@ -199,49 +199,32 @@ for index, data in enumerate(dataset):
 
     data_list.append(data)
 
-# for data in dataset:
-#             if args.dis=='rdf':
-#                dis=torch.pow(edge_attrs[index].reshape(-1, num_layouts), 2)
-#                dis =  torch.exp(-dis)
-#             if args.dis=='dis':
-#                 dis=edge_attrs[index].reshape(-1, num_layouts)
-#             if args.dis=='random':
-#                 dis=torch.rand(edge_attrs[index].size(0), num_layouts)
-#             if args.model=='GPS':
-#                  data = Data(x=data.x, edge_index=data.edge_index, edge_attr=dis, y=data.y,pe=data.pe)
-#             else: 
-#                  data = Data(x=data.x, edge_index=data.edge_index, edge_attr=dis, y=data.y)            
-#             data_list.append(data)
-#             index=index+1
-##########
-
 class PermutationInvariantNet(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(PermutationInvariantNet, self).__init__()
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, output_dim)
-        self.fc_stats = nn.Linear(output_dim+3, output_dim)  # 3表示要计算的统计量数量
+        self.fc_stats = nn.Linear(output_dim, output_dim)  #
 
     def forward(self, x):
         # Sort x
-        x_sorted, _ = torch.sort(x, dim=1)
-
-        # Calculate original features
-        #x_features = self.fc1(x_sorted)
-        #x_features = F.relu(x_features)
-        #x_features = self.fc2(x_features)
-
+        #x_sorted=x
+        #x_sorted, _ = torch.sort(x, dim=1)
+        #x_features=F.dropout(x_features, p=0.2, training=self.training)
         # Calculate statistics for each sample
-        x_range = torch.max(x_sorted, dim=1)[0] - torch.min(x_sorted, dim=1)[0]  # Range
-        x_std = torch.std(x_sorted, dim=1)  # Standard deviation
-        x_max = torch.max(x_sorted, dim=1)[0]  # Maximum value
+        #x_range = torch.max(x_sorted, dim=1)[0] - torch.min(x_sorted, dim=1)[0]  # Range
+        #x_std = torch.std(x_sorted, dim=1)  # Standard deviation
+        #x_max = torch.max(x_sorted, dim=1)[0]  # Maximum value
 
         # Combine original features and statistics
-        x_combined = torch.cat((x_features, x_range.unsqueeze(1), x_std.unsqueeze(1), x_max.unsqueeze(1)), dim=1)
+        #x_combined = torch.cat((x_features, x_range.unsqueeze(1), x_std.unsqueeze(1), x_max.unsqueeze(1)), dim=1)
 
         # Process the combined features through another layer if needed
-        x_combined = F.relu(self.fc_stats(x_combined))
-        return x_combined
+        # x_combined = F.relu(self.fc_stats(x_features))
+        x_features = self.fc1(x)
+        x_features = F.relu(x_features)
+        x_features = self.fc2(x_features)
+        return x_features 
 
 class GNN(torch.nn.Module):
     def __init__(self, num_features, num_classes,use_edge):
@@ -339,8 +322,8 @@ for fold in range(k):
    fold_size = len(dataset) // k
    start_idx = fold * fold_size
    end_idx = (fold + 1) * fold_size
-   patience=25
-   max_patience=25
+   patience=50
+   max_patience=50
    best_val_acc=0
    best_test_acc=0
    best_train_acc=0
